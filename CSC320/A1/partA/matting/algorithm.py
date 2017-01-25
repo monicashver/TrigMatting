@@ -168,6 +168,9 @@ class Matting:
         Perform triangulation matting. Returns True if successful (ie.
         all inputs and outputs are valid) and False if not. When success=False
         an explanatory error message should be returned.
+                    A = np.hstack((matrix, -1*a))
+            x = np.clip(np.dot(np.linalg.pinv(A),b), 0.0, 1.0)
+
         """
 
         success = False
