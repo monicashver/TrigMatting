@@ -6,6 +6,8 @@
 ## AS-IS, MODIFIED OR IN PART), WITHOUT PRIOR WRITTEN AUTHORIZATION 
 ## BY THE INSTRUCTOR IS STRICTLY PROHIBITED. VIOLATION OF THIS 
 ## POLICY WILL BE CONSIDERED AN ACT OF ACADEMIC DISHONESTY
+##The command to copy and paste
+##./viscomp.py --matting --backA ../test_images/tiny/flowers-backA.jpg --backB ../test_images/tiny/flowers-backB.jpg --compA ../test_images/tiny/flowers-compA.jpg --compB ../test_images/tiny/flowers-compB.jpg --alphaOut alpha.tif --colOut col.tif
 
 ##
 ## DO NOT MODIFY THIS FILE ANYWHERE EXCEPT WHERE INDICATED
@@ -128,15 +130,17 @@ class Matting:
         #########################################
 
         success = key in self._images #check if key value
-        if success #valid key
-            picture = cv.imread(fileName) #try to load picture
-            if not picture is None #if picture loaded, update self._images
+        if success: #valid key
+            picture = cv.imread(fileName, cv.IMREAD_UNCHANGED) #try to load picture
+            if not picture is None: #if picture loaded, update self._images
                 self._images[key] = picture
-            else #load did not work
+                succes, msg = True, "Successfully loaded image"
+            else: #load did not work
                 success = False
                 msg = 'Failed to load image properly'
 
         #########################################
+        print(success, msg)
         return success, msg
 
     # Use OpenCV to write to a file an image that is contained in the 
@@ -148,7 +152,7 @@ class Matting:
     # return False, along with an error message
     def writeImage(self, fileName, key):
         success = False
-        msg = 'Placeholder'
+        msg = 'Placeholder meow meow meow '
 
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
@@ -172,13 +176,61 @@ class Matting:
             x = np.clip(np.dot(np.linalg.pinv(A),b), 0.0, 1.0)
 
         """
-
         success = False
         msg = 'Placeholder'
 
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
+
+        #Create matrix A, from the equation Ax = b
+        temp_matrix = np.eye(3,4)
+        A = np.vstack((temp_matrix, temp_matrix))
+
+        #Create matrix x
+        deltaValues = np.zeros([6,4])
+
+        #Get image information from dictionary
+        compA = self._images['compA']
+        compB = self._images['compB']
+        backA = self._images['backA']
+        backB = self._images['backB']
+
+        #shape of images for init of result matrices
+        x,y = backA.shape[0:2]
+        
+        #create result matrices, alpha and co
+        self._images['colOut'] = np.zeros([x,y,3]) #RBG values at each index = 3
+        self._images['alphaOut'] = np.zeros([x,y]) #only x and y since just a singular value alpha
+
+        for i in range(x): #Rows
+            for j in range(y): #Columns
+
+                #Values at the index i, j
+                c1 = compA[i,j].astype(np.float16)
+                c2 = compB[i,j].astype(np.float16)
+
+                b1 = backA[i,j].astype(np.float16)
+                b2 = backB[i,j].astype(np.float16)
+
+                A[0:3, 3] = -b1
+                A[3:6, 3] = -b2
+
+                deltaValues[0:3, 0] = c1 - b1
+                deltaValues[3:6, 0] = c2 - b2
+                
+                inverse = np.dot(np.linalg.pinv(A), deltaValues)
+                
+                #keep the alpha values between 1 and 0
+                inverse[3:0] = np.clip(inverse[3,0], 0.0, 1.0)
+
+                
+                #add result values to self._images
+                self._images['colOut'][i, j] = inverse[:3,0]
+                self._images['alphaOut'][i,j] = (255 * inverse[3,0])
+
+
+        success, msg = True, 'Loaded alphaOut and colOut values'
 
         #########################################
 
@@ -187,15 +239,15 @@ class Matting:
         
     def createComposite(self):
         """
-success, errorMessage = createComposite(self)
+        success, errorMessage = createComposite(self)
         
         Perform compositing. Returns True if successful (ie.
         all inputs and outputs are valid) and False if not. When success=False
         an explanatory error message should be returned.
-"""
+        """
 
         success = False
-        msg = 'Placeholder'
+        msg = 'Placeholderdksdkjakldjaslkalkajdl'
 
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
