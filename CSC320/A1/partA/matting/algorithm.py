@@ -21,7 +21,7 @@ import cv2 as cv
 # If you wish to import any additional modules
 # or define other utility functions, 
 # include them here
-
+import os
 #########################################
 ## PLACE YOUR CODE BETWEEN THESE LINES ##
 #########################################
@@ -128,19 +128,21 @@ class Matting:
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
-
-        success = key in self._images #check if key value
-        if success: #valid key
+        #elif (not os.path.isfile(fileName)):
+        #    success, msg = False, 'Invalid filename provided for ' + key
+        
+        if (not key in self._images): #valid key
+            success, msg = False, 'Invalid key provided: ' + key
+        else:
             picture = cv.imread(fileName, cv.IMREAD_UNCHANGED) #try to load picture
-            if not picture is None: #if picture loaded, update self._images
+            if (type(picture) == None): #failed to load image
+                success, msg = False, 'Failed to load image properly'                
+            else: #load worked
                 self._images[key] = picture
-                succes, msg = True, "Successfully loaded image"
-            else: #load did not work
-                success = False
-                msg = 'Failed to load image properly'
-
-        #########################################
+                success, msg = True, "Successfully loaded image"                
+        
         print(success, msg)
+        #########################################
         return success, msg
 
     # Use OpenCV to write to a file an image that is contained in the 
@@ -152,14 +154,22 @@ class Matting:
     # return False, along with an error message
     def writeImage(self, fileName, key):
         success = False
-        msg = 'Placeholder meow meow meow '
+        msg = 'Placeholder'
 
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
-
+        data = self._images[key]
+        if(key not in self._images):
+            success, msg = False, 'Invalid key provided'
+        elif (type(data) == None):
+            success, msg = False, 'There is no data in key: ' + key + 'to write'
+        else:
+            cv.imwrite(fileName, data)
+            success = True, 'Successfully wrote image'
 
         #########################################
+        print(success, msg)
         return success, msg
 
     # Method implementing the triangulation matting algorithm. The
@@ -172,9 +182,6 @@ class Matting:
         Perform triangulation matting. Returns True if successful (ie.
         all inputs and outputs are valid) and False if not. When success=False
         an explanatory error message should be returned.
-                    A = np.hstack((matrix, -1*a))
-            x = np.clip(np.dot(np.linalg.pinv(A),b), 0.0, 1.0)
-
         """
         success = False
         msg = 'Placeholder'
@@ -236,7 +243,7 @@ class Matting:
 
         return success, msg
 
-        
+#./viscomp.py --compositing --alphaIn alpha2.tif --colIn col2.tif --backIn ../test_images/tiny/window.jpg --compOut comp2.jpg
     def createComposite(self):
         """
         success, errorMessage = createComposite(self)
@@ -247,12 +254,33 @@ class Matting:
         """
 
         success = False
-        msg = 'Placeholderdksdkjakldjaslkalkajdl'
+        msg = 'Placeholder'
 
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
+        
+        x,y = self._images['backIn'].shape[0:2]
+        composite = np.zeros([x, y, 3])
+                
+        alpha = self._images['alphaIn']
+        colour = self._images['colIn']
+        background = self._images['backIn']
+                
+        for i in range(x):
+            for j in range(y):
+                
+                #load the alpha, color and background value at that index
+                alphaValue = alpha[i,j].astype(np.float16)
+                colourValue = colour[i,j].astype(np.float16)
+                backgroundValue = background[i,j].astype(np.float16)
+                
+                composite[i,j] = colourValue + ((1-alphaValue/255) * backgroundValue)
 
+
+        self._images['compOut'] = composite
+        
+        success, msg = True, 'yes'
         #########################################
 
         return success, msg
