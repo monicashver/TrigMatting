@@ -133,6 +133,8 @@ class Matting:
         
         if (not key in self._images): #valid key
             success, msg = False, 'Invalid key provided: ' + key
+        elif (not os.path.isfile(fileName)):
+            success, msg = False, 'Invalid filename provided: ' + fileName
         else:
             picture = cv.imread(fileName, cv.IMREAD_UNCHANGED) #try to load picture
             if (type(picture) == None): #failed to load image
@@ -267,6 +269,7 @@ class Matting:
         colour = self._images['colIn']
         background = self._images['backIn']
                 
+        print(alpha.shape, colour.shape, background.shape)
         for i in range(x):
             for j in range(y):
                 
