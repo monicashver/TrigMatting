@@ -262,7 +262,7 @@ class Matting:
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
         
-        x,y = self._images['backIn'].shape[0:2]
+        x,y = self._images['alphaIn'].shape[0:2]
         composite = np.zeros([x, y, 3])
                 
         alpha = self._images['alphaIn']
