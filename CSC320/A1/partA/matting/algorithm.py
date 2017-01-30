@@ -136,7 +136,7 @@ class Matting:
         elif (not os.path.isfile(fileName)):
             success, msg = False, 'Invalid filename provided: ' + fileName
         else:
-            picture = cv.imread(fileName, cv.IMREAD_UNCHANGED) #try to load picture
+            picture = cv.imread(fileName) #try to load picture
             if (type(picture) == None): #failed to load image
                 success, msg = False, 'Failed to load image properly'                
             else: #load worked
@@ -265,22 +265,15 @@ class Matting:
         x,y = self._images['alphaIn'].shape[0:2]
         composite = np.zeros([x, y, 3])
                 
-        alpha = self._images['alphaIn']
-        colour = self._images['colIn']
-        background = self._images['backIn']
+        alpha = self._images['alphaIn'].astype(np.float16)
+        colour = self._images['colIn'].astype(np.float16)
+        background = self._images['backIn'].astype(np.float16)
                 
-        print(alpha.shape, colour.shape, background.shape)
-        for i in range(x):
-            for j in range(y):
-                
-                #load the alpha, color and background value at that index
-                alphaValue = alpha[i,j].astype(np.float16)
-                colourValue = colour[i,j].astype(np.float16)
-                backgroundValue = background[i,j].astype(np.float16)
-                
-                composite[i,j] = colourValue + ((1-alphaValue/255) * backgroundValue)
+        alphaData = (1-(alpha/255))
 
-
+        composite = np.multiply(alphaData, background) + colour
+        
+        composite = composite.astype(np.float64)
         self._images['compOut'] = composite
         
         success, msg = True, 'yes'
