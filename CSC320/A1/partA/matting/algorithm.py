@@ -171,7 +171,6 @@ class Matting:
             success = True, 'Successfully wrote image'
 
         #########################################
-        print(success, msg)
         return success, msg
 
     # Method implementing the triangulation matting algorithm. The
@@ -263,14 +262,14 @@ class Matting:
         #########################################
                 
         #load up alphaIn, colIn, backIn
-        alpha = self._images['alphaIn'].astype(np.float16)
-        colour = self._images['colIn'].astype(np.float16)
-        background = self._images['backIn'].astype(np.float16)
+        alpha = self._images['alphaIn'].astype(np.float32)
+        colour = self._images['colIn'].astype(np.float32)
+        background = self._images['backIn'].astype(np.float32)
                 
         #create composite result matrix 
-        x,y,z = alpha.shape
-        composite = np.zeros([x, y, z])        
-        
+        x,y = alpha.shape[0:2]
+        composite = np.zeros([x, y, 3])    
+
         #check that colour and background images are same shape
         if(colour.shape != background.shape):
             success, msg = False, 'Error: colIn must be a color image of size equal to backIn'
@@ -283,7 +282,7 @@ class Matting:
         else:
             alphaData = (1 - (alpha / 255))
             composite = np.multiply(alphaData, background) + colour
-            composite = composite.astype(np.float64)
+            composite = composite.astype(np.float32)
             
             self._images['compOut'] = composite
             success, msg = True, 'Created composite'
