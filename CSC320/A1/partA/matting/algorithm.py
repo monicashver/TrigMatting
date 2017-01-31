@@ -261,27 +261,32 @@ class Matting:
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
-        
-        x,y = self._images['alphaIn'].shape[0:2]
-        composite = np.zeros([x, y, 3])
                 
+        #load up alphaIn, colIn, backIn
         alpha = self._images['alphaIn'].astype(np.float16)
         colour = self._images['colIn'].astype(np.float16)
         background = self._images['backIn'].astype(np.float16)
+                
+        #create composite result matrix 
+        x,y,z = alpha.shape
+        composite = np.zeros([x, y, z])        
         
-        
-        print(alpha.shape, colour.shape, background.shape)
+        #check that colour and background images are same shape
         if(colour.shape != background.shape):
             success, msg = False, 'Error: colIn must be a color image of size equal to backIn'
+            
+        #check alpha is same size as colour and background
         elif((alpha.shape != colour.shape) or (alpha.shape != background.shape)):
             success, msg = False, 'Error: alphaIn size doesn\'t match size of backIn or colIn' 
+
+        #implement the matting equation
         else:
-            alphaData = (1-(alpha/255))
+            alphaData = (1 - (alpha / 255))
             composite = np.multiply(alphaData, background) + colour
             composite = composite.astype(np.float64)
-            self._images['compOut'] = composite
             
-            success, msg = True, 'yes'
+            self._images['compOut'] = composite
+            success, msg = True, 'Created composite'
         #########################################
 
         return success, msg
