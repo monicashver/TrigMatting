@@ -207,7 +207,7 @@ class Matting:
         #shape of images for init of result matrices
         x,y = backA.shape[0:2]
         
-        #create result matrices, alpha and co
+        #create result matrices, alpha and colOut
         self._images['colOut'] = np.zeros([x,y,3]) #RGB values at each index 
         self._images['alphaOut'] = np.zeros([x,y]) #only x and y since just a singular value alpha
 
