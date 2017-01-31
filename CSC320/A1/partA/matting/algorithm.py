@@ -231,7 +231,7 @@ class Matting:
                 inverse = np.dot(np.linalg.pinv(A), deltaValues)
                 
                 #keep the alpha values between 1 and 0
-                inverse[3:0] = np.clip(inverse[3,0], 0.0, 1.0)
+                inverse[3,0] = np.clip(inverse[3,0], 0.0, 1.0)
 
                 
                 #add result values to self._images
@@ -268,15 +268,20 @@ class Matting:
         alpha = self._images['alphaIn'].astype(np.float16)
         colour = self._images['colIn'].astype(np.float16)
         background = self._images['backIn'].astype(np.float16)
-                
-        alphaData = (1-(alpha/255))
-
-        composite = np.multiply(alphaData, background) + colour
         
-        composite = composite.astype(np.float64)
-        self._images['compOut'] = composite
         
-        success, msg = True, 'yes'
+        print(alpha.shape, colour.shape, background.shape)
+        if(colour.shape != background.shape):
+            success, msg = False, 'Error: colIn must be a color image of size equal to backIn'
+        elif((alpha.shape != colour.shape) or (alpha.shape != background.shape)):
+            success, msg = False, 'Error: alphaIn size doesn\'t match size of backIn or colIn' 
+        else:
+            alphaData = (1-(alpha/255))
+            composite = np.multiply(alphaData, background) + colour
+            composite = composite.astype(np.float64)
+            self._images['compOut'] = composite
+            
+            success, msg = True, 'yes'
         #########################################
 
         return success, msg
