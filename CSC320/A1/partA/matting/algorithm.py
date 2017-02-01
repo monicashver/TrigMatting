@@ -128,22 +128,27 @@ class Matting:
         #########################################
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
-        #elif (not os.path.isfile(fileName)):
-        #    success, msg = False, 'Invalid filename provided for ' + key
         
-        if (not key in self._images): #valid key
+        #Check that valid key given
+        if (not key in self._images):
             success, msg = False, 'Invalid key provided: ' + key
+            
+        #Check if given filename is valid
         elif (not os.path.isfile(fileName)):
             success, msg = False, 'Invalid filename provided: ' + fileName
         else:
-            picture = cv.imread(fileName) #try to load picture
-            if (type(picture) == None): #failed to load image
-                success, msg = False, 'Failed to load image properly'                
-            else: #load worked
+            #Attemp to load image
+            picture = cv.imread(fileName, cv.IMREAD_UNCHANGED)
+            
+            #imread failed
+            if (type(picture) == None):
+                success, msg = False, 'Failed to load image properly'
+                
+            #imread was successful 
+            else:
                 self._images[key] = picture
                 success, msg = True, "Successfully loaded image"                
         
-        print(success, msg)
         #########################################
         return success, msg
 
@@ -162,8 +167,12 @@ class Matting:
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
         data = self._images[key]
+        
+        #Invalid key provided
         if(key not in self._images):
             success, msg = False, 'Invalid key provided'
+        
+        #Valid key, but value for that key is None
         elif (type(data) == None):
             success, msg = False, 'There is no data in key: ' + key + 'to write'
         else:
@@ -191,35 +200,34 @@ class Matting:
         ## PLACE YOUR CODE BETWEEN THESE LINES ##
         #########################################
 
-        #Create matrix A, from the equation Ax = b
-        temp_matrix = np.eye(3,4)
+        #Create matrix A, from the overally matting equation A * inverse = deltaValues
+        temp_matrix = np.eye(3, 4)
         A = np.vstack((temp_matrix, temp_matrix))
 
         #Create matrix x
-        deltaValues = np.zeros([6,4])
+        deltaValues = np.zeros([6, 1])
 
         #Get image information from dictionary
-        compA = self._images['compA']
-        compB = self._images['compB']
-        backA = self._images['backA']
-        backB = self._images['backB']
+        compA = self._images['compA'].astype(np.float16)
+        compB = self._images['compB'].astype(np.float16)
+        backA = self._images['backA'].astype(np.float16)
+        backB = self._images['backB'].astype(np.float16)
 
         #shape of images for init of result matrices
         x,y = backA.shape[0:2]
         
         #create result matrices, alpha and colOut
-        self._images['colOut'] = np.zeros([x,y,3]) #RGB values at each index 
-        self._images['alphaOut'] = np.zeros([x,y]) #only x and y since just a singular value alpha
+        self._images['colOut'] = np.zeros([x, y, 3]) #RGB values at each index 
+        self._images['alphaOut'] = np.zeros([x, y]) #only x and y since just a singular value alpha
 
         for i in range(x): #Rows
             for j in range(y): #Columns
 
                 #Values at the index i, j
-                c1 = compA[i,j].astype(np.float16)
-                c2 = compB[i,j].astype(np.float16)
-
-                b1 = backA[i,j].astype(np.float16)
-                b2 = backB[i,j].astype(np.float16)
+                c1 = compA[i,j]
+                c2 = compB[i,j]
+                b1 = backA[i,j]
+                b2 = backB[i,j]
 
                 A[0:3, 3] = -b1
                 A[3:6, 3] = -b2
@@ -275,9 +283,12 @@ class Matting:
             success, msg = False, 'Error: colIn must be a color image of size equal to backIn'
             
         #check alpha is same size as colour and background
-        elif((alpha.shape != colour.shape) or (alpha.shape != background.shape)):
+        elif((alpha.shape[0:2] != colour.shape[0:2]) or (alpha.shape[0:2] != background.shape[0:2])):
             success, msg = False, 'Error: alphaIn size doesn\'t match size of backIn or colIn' 
 
+        #check alpha is a greyscale image
+        
+        
         #implement the matting equation
         else:
             alphaData = (1 - (alpha / 255))
