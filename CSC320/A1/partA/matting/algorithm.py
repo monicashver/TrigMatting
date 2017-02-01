@@ -287,13 +287,21 @@ class Matting:
             success, msg = False, 'Error: alphaIn size doesn\'t match size of backIn or colIn' 
 
         #check alpha is a greyscale image
-        
+        elif((len(alpha.shape) != 2) or (self._images['alphaIn'].dtype != 'uint8')):
+            success, msg = False, 'Error: alphaIn must be a greyscale image of type uint8' 
+            
         
         #implement the matting equation
         else:
-            alphaData = (1 - (alpha / 255))
-            composite = np.multiply(alphaData, background) + colour
-            composite = composite.astype(np.float32)
+            for i in range(x):
+                for j in range(y):
+                    
+                    #load the alpha, color and background value at that index
+                    alphaValue = alpha[i,j].astype(np.float16)
+                    colourValue = colour[i,j].astype(np.float16)
+                    backgroundValue = background[i,j].astype(np.float16)
+                    
+                    composite[i,j] = colourValue + ((1 - alphaValue / 255) * backgroundValue)
             
             self._images['compOut'] = composite
             success, msg = True, 'Created composite'
